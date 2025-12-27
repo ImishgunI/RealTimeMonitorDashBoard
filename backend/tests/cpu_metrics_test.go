@@ -21,8 +21,7 @@ func TestParseData(t *testing.T) {
 	if err != nil {
 		t.Errorf("%v", err)
 	}
-	mp := metrics.ParseData(data)
-	fmt.Print(mp)
+	_ = metrics.ParseData(data)
 }
 
 func TestGetDataFromStringSlice(t *testing.T) {
@@ -31,5 +30,15 @@ func TestGetDataFromStringSlice(t *testing.T) {
 	if name == "" {
 		t.Errorf("%v", fmt.Errorf("Name is empty"))
 	}
-	fmt.Println(name, value)
+	fmt.Printf("%s %s", name, value)
+}
+
+func TestGetDataForCPUMetrics(t *testing.T) {
+	name, cores, threads, freq := metrics.GetValueForCPUMetrics()
+	fmt.Printf("%s %d %d %.3f", name, cores, threads, freq/1000)
+}
+
+func TestGetTempForCPU(t *testing.T) {
+	temp := metrics.GetTemretureForCPU()
+	fmt.Println(temp)
 }
