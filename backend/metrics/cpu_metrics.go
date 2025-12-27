@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -16,11 +17,14 @@ type CPUMetrics struct {
 }
 
 func New() *CPUMetrics {
-	name, cores, threads := GetValueForCPUMetrics()
+	name, cores, threads, freq := GetValueForCPUMetrics()
 	return &CPUMetrics{
-		Name:    name,
-		Cores:   int8(cores),
-		Threads: int8(threads),
+		Name:      name,
+		Cores:     int8(cores),
+		Threads:   int8(threads),
+		Frequency: freq / 1000,
+		Temreture: GetTemretureForCPU(),
+		Workload:  0,
 	}
 }
 
@@ -56,20 +60,45 @@ func GetDataFromStringSlice(data []string) (string, string) {
 	return name, value
 }
 
-func GetValueForCPUMetrics() (Name string, Cores int, Threads int) {
+func GetValueForCPUMetrics() (Name string, Cores int, Threads int, Frequency float32) {
 	data, err := GetDataFromCpuInfo()
 	if err != nil {
-		return "Uknown Processor", 0, 0
+		return "Uknown Processor", 0, 0, 0
 	}
 	mp := ParseData(data)
 	Cores, err = strconv.Atoi(mp["cpu cores"])
 	if err != nil {
-		return "Uknown Processor", 0, 0
+		return "Uknown Processor", 0, 0, 0
 	}
 	Name = mp["model name"]
 	Threads, err = strconv.Atoi(mp["siblings"])
 	if err != nil {
-		return "Uknown Processor", 0, 0
+		return "Uknown Processor", 0, 0, 0
 	}
-	return Name, Cores, Threads
+	freq, err := strconv.ParseFloat(mp["cpu MHz"], 32)
+	if err != nil {
+		return "Uknown Processor", 0, 0, 0
+	}
+	Frequency = float32(freq)
+	return Name, Cores, Threads, Frequency
+}
+
+func GetTemretureForCPU() float32 {
+	data, err := os.ReadFile("/sys/class/thermal/thermal_zone0/temp")
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return 0
+	}
+	builder := strings.Builder{}
+	for _, c := range data {
+		if c != '\n' {
+			builder.WriteByte(c)
+		}
+	}
+	temreture, err := strconv.ParseFloat(builder.String(), 32)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return 0
+	}
+	return float32(temreture / 1000)
 }
