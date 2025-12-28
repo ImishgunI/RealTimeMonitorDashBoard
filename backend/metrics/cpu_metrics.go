@@ -1,10 +1,11 @@
 package metrics
-
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type CPUMetrics struct {
@@ -13,7 +14,7 @@ type CPUMetrics struct {
 	Threads   int8
 	Frequency float32
 	Temreture float32
-	Workload  int8
+	Workload  float32
 }
 
 func New() *CPUMetrics {
@@ -24,7 +25,7 @@ func New() *CPUMetrics {
 		Threads:   int8(threads),
 		Frequency: freq / 1000,
 		Temreture: GetTemretureForCPU(),
-		Workload:  0,
+		Workload:  GetWorkload(),
 	}
 }
 
@@ -101,4 +102,58 @@ func GetTemretureForCPU() float32 {
 		return 0
 	}
 	return float32(temreture / 1000)
+}
+
+func GetDataForWorkload() string {
+	data, err := os.ReadFile("/proc/stat")
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+func GetLine(data string) []string {
+	scanner := bufio.NewScanner(strings.NewReader(data))
+	scanner.Scan()
+	fields := strings.Fields(scanner.Text())
+	return fields
+}
+
+func GetCPUMeasurement(line []string) (int64, int64) {
+	
+	var values []int64
+	for _, f := range line[1:] {
+		v, _ := strconv.ParseInt(f, 10, 64)
+		values = append(values, v)
+	}
+	
+	user := values[0]
+	nice := values[1]
+	system := values[2] 
+	idle := values[3]
+	iowait := values[4]
+	irq := values[5]
+	softirq := values[6] 
+	steal := values[7]
+
+	total := user + nice + system + idle + iowait + irq + softirq + steal
+
+	idle_total := idle + iowait
+
+	return total, idle_total
+}
+
+func GetWorkload() float32 {
+	total1, idle_total1 := GetCPUMeasurement(GetLine(GetDataForWorkload()))
+	time.Sleep(1 * time.Second)
+	total2, idle_total2 := GetCPUMeasurement(GetLine(GetDataForWorkload()))
+
+	totalDiff := total2 - total1
+	idleDiff := idle_total2 - idle_total1
+
+	if totalDiff == 0 {
+		return 0.0
+	}
+	load := 100.0 * float32(totalDiff-idleDiff) / float32(totalDiff)
+	return load
 }
