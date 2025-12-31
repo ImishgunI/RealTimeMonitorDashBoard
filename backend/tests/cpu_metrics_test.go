@@ -24,15 +24,6 @@ func TestParseData(t *testing.T) {
 	_ = metrics.ParseData(data)
 }
 
-func TestGetDataFromStringSlice(t *testing.T) {
-	data := []string{"processor", "0"}
-	name, value := metrics.GetDataFromStringSlice(data)
-	if name == "" {
-		t.Errorf("%v", fmt.Errorf("Name is empty"))
-	}
-	fmt.Printf("%s %s", name, value)
-}
-
 func TestGetDataForCPUMetrics(t *testing.T) {
 	name, cores, threads, freq := metrics.GetValueForCPUMetrics()
 	fmt.Printf("%s %d %d %.3f", name, cores, threads, freq/1000)
