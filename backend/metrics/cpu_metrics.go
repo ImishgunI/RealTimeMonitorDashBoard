@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"real_time_monitor_dashboard/backend/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -84,7 +85,7 @@ func getThreads(parsed [][]string) int8 {
 	threads, err := strconv.ParseInt(parsed[10][2], 10, 8)
 	if err != nil {
 		fmt.Printf("Failed to parse int for threads: %v", err)
-		return 0 
+		return 0
 	}
 	return int8(threads)
 }
@@ -98,8 +99,8 @@ func getFrequency(parsed [][]string) float32 {
 	return float32(freq)
 }
 
-func getdataFromThermalZone() string {
-	data, err := os.ReadFile("/sys/class/thermal/thermal_zone0/temp")
+func getdataFromFileWithTemreture(filepath string) string {
+	data, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return ""
@@ -114,7 +115,8 @@ func getdataFromThermalZone() string {
 }
 
 func GetTemretureForCPU() float32 {
-	temp :=  getdataFromThermalZone()
+	filepath := utils.FindFilePathForCPUTemreture()
+	temp := getdataFromFileWithTemreture(filepath)
 	temreture, err := strconv.ParseFloat(temp, 32)
 	if err != nil {
 		fmt.Printf("%v", err)
