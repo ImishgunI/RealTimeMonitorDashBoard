@@ -34,8 +34,8 @@ func fetchData() tea.Msg {
 	}
 }
 
-func tickCmd() tea.Cmd {
-	return tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
+func tickCmd(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
 		return tickMsg(t)
 	})
 }
@@ -51,7 +51,7 @@ func initialModel() model {
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
 		fetchData,
-		tickCmd(),
+		tickCmd(time.Nanosecond),
 	)
 }
 
@@ -70,7 +70,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		return m, tea.Batch(
 			fetchData,
-			tickCmd(),
+			tickCmd(500*time.Millisecond),
 		)
 	case cpuUpdateMsg:
 		m.cpu = msg.cpu
