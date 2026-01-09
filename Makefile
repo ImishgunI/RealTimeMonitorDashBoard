@@ -1,4 +1,5 @@
 backend=backend
+TUI=tui/app
 
 run: 
-	go run $(backend)/main.go
+	go run $(TUI)/main.go
