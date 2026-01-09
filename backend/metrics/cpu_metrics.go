@@ -30,6 +30,13 @@ func New() *CPUMetrics {
 	}
 }
 
+func Init(cpu *CPUMetrics) *CPUMetrics {
+	cpu.Name, cpu.Cores, cpu.Threads, cpu.Frequency = getValueForCPUMetrics()
+	cpu.Temreture = getTemretureForCPU()
+	cpu.Workload = getWorkload()
+	return cpu
+}
+
 func getDataFromCpuInfo() (string, error) {
 	data, err := os.ReadFile("/proc/cpuinfo")
 	if err != nil {
@@ -48,7 +55,7 @@ func parseData(data string) [][]string {
 	return parsed
 }
 
-func GetValueForCPUMetrics() (Name string, Cores int8, Threads int8, Frequency float32) {
+func getValueForCPUMetrics() (Name string, Cores int8, Threads int8, Frequency float32) {
 	data, err := getDataFromCpuInfo()
 	if err != nil {
 		return "Unknown processor", 0, 0, 0.0
@@ -114,7 +121,7 @@ func getdataFromFileWithTemreture(filepath string) string {
 	return builder.String()
 }
 
-func GetTemretureForCPU() float32 {
+func getTemretureForCPU() float32 {
 	filepath := utils.FindFilePathForCPUTemreture()
 	temp := getdataFromFileWithTemreture(filepath)
 	temreture, err := strconv.ParseFloat(temp, 32)
@@ -164,7 +171,7 @@ func getCPUMeasurement(line []string) (int64, int64) {
 	return total, idle_total
 }
 
-func GetWorkload() float32 {
+func getWorkload() float32 {
 	total1, idle_total1 := getCPUMeasurement(getLine(getDataForWorkload()))
 	time.Sleep(1 * time.Second)
 	total2, idle_total2 := getCPUMeasurement(getLine(getDataForWorkload()))
