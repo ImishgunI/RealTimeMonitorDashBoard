@@ -108,20 +108,19 @@ func (m model) View() string {
 	cpuinfo := fmt.Sprintf(
 		"Name: %s\nCores: %d\nThreads: %d\nFrequency: %.1fMHz\nTemreture: %d℃\n",
 		m.cpu.Name, m.cpu.Cores, m.cpu.Threads, m.cpu.Frequency/1000,
-		int(math.Ceil(float64(m.cpu.Temreture))),
+		int(float64(m.cpu.Temreture)),
 	)
-	cpubar := progressBar(30, int(math.Ceil(float64(m.cpu.Workload))), "CPU")
+	pbar := progressBar(30, int(math.Ceil(float64(m.cpu.Workload))))
 	content := lipgloss.JoinVertical(
 		lipgloss.Left,
 		cpuinfo,
 		labelStyle.Render("CPU Usage:"),
-		cpubar,
-		fmt.Sprintf("%s %d%%", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Render("Current"), int(math.Ceil(float64(m.cpu.Workload)))),
+		fmt.Sprintf("%s	[%s%d%%]", "CPU", pbar, int(math.Ceil(float64(m.cpu.Workload)))),
 	)
 	return appStyle.Render(content)
 }
 
-func progressBar(width int, percent int, label string) string {
+func progressBar(width int, percent int) string {
 	filledWidth := int(width * percent / 100)
 	bar := strings.Builder{}
 
@@ -135,14 +134,13 @@ func progressBar(width int, percent int, label string) string {
 
 	filledStyle := lipgloss.NewStyle().Foreground(barColor)
 	for i := range width {
-		if i <= filledWidth {
+		if i < filledWidth {
 			bar.WriteString(filledStyle.Render("|"))
 		} else {
 			bar.WriteString(" ")
 		}
 	}
-
-	return fmt.Sprintf("%s [%s]", label, bar.String())
+	return bar.String()
 }
 
 func main() {
