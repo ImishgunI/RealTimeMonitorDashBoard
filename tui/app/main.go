@@ -8,6 +8,29 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	appStyle = lipgloss.NewStyle().
+			Margin(1, 2).
+			Padding(1, 2).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62")).
+			Width(50)
+	labelStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#ffffffff"))
+
+	warningStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#FF0000"))
+
+	okStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#00FF00"))
+
+	lowUsageColor    = lipgloss.Color("#00FF00")
+	mediumUsageColor = lipgloss.Color("#FFFF00")
+	highUsageColor   = lipgloss.Color("#FF0000")
 )
 
 /*
@@ -82,13 +105,44 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // Render UI
 func (m model) View() string {
 	cpuinfo := fmt.Sprintf(
-		"Name: %s\nCores: %d\nThreads: %d\nFrequency: %.1fMHz\nTemreture: %d℃\nWorkload: %d%%\n",
+		"Name: %s\nCores: %d\nThreads: %d\nFrequency: %.1fMHz\nTemreture: %d℃\n",
 		m.cpu.Name, m.cpu.Cores, m.cpu.Threads, m.cpu.Frequency/1000,
 		int(math.Ceil(float64(m.cpu.Temreture))),
-		int(math.Ceil(float64(m.cpu.Workload))),
 	)
-	s := cpuinfo
-	return s
+	cpubar := progressBar(30, int(math.Ceil(float64(m.cpu.Workload))), "CPU")
+	content := lipgloss.JoinVertical(
+		lipgloss.Left,
+		cpuinfo,
+		labelStyle.Render("CPU Usage:"),
+		cpubar,
+		fmt.Sprintf("%s %d%%", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Render("Current"), int(math.Ceil(float64(m.cpu.Workload)))),
+	)
+	return appStyle.Render(content)
+}
+
+func progressBar(width int, percent int, label string) string {
+	filledWidth := int(width * percent / 100)
+	bar := ""
+
+	barColor := lowUsageColor
+	if percent > 50 {
+		barColor = mediumUsageColor
+	}
+	if percent > 80 {
+		barColor = highUsageColor
+	}
+
+	filledStyle := lipgloss.NewStyle().Foreground(barColor)
+
+	for i := range width {
+		if i <= filledWidth {
+			bar += filledStyle.Render("|")
+		} else {
+			bar += " "
+		}
+	}
+
+	return fmt.Sprintf("%s [%s]", label, bar)
 }
 
 func main() {
