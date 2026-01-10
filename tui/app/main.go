@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"real_time_monitor_dashboard/backend/metrics"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -122,7 +123,7 @@ func (m model) View() string {
 
 func progressBar(width int, percent int, label string) string {
 	filledWidth := int(width * percent / 100)
-	bar := ""
+	bar := strings.Builder{}
 
 	barColor := lowUsageColor
 	if percent > 50 {
@@ -133,16 +134,15 @@ func progressBar(width int, percent int, label string) string {
 	}
 
 	filledStyle := lipgloss.NewStyle().Foreground(barColor)
-
 	for i := range width {
 		if i <= filledWidth {
-			bar += filledStyle.Render("|")
+			bar.WriteString(filledStyle.Render("|"))
 		} else {
-			bar += " "
+			bar.WriteString(" ")
 		}
 	}
 
-	return fmt.Sprintf("%s [%s]", label, bar)
+	return fmt.Sprintf("%s [%s]", label, bar.String())
 }
 
 func main() {
