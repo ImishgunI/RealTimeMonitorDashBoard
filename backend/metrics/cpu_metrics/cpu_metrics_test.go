@@ -1,7 +1,8 @@
-package metrics
+package cpumetrics
 
 import (
 	"testing"
+
 	"github.com/go-playground/assert/v2"
 )
 
