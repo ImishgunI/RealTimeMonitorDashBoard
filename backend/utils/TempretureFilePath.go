@@ -21,7 +21,7 @@ func FindFilePathForCPUTemreture() string {
 				if err != nil {
 					break
 				}
-				if dev == "k10temp" {
+				if dev == "k10temp" || dev == "coretemp" {
 					return names[c] + "temp1_input"
 				} else {
 					break
