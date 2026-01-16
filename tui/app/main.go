@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"real_time_monitor_dashboard/backend/metrics"
+	metrics "real_time_monitor_dashboard/backend/metrics/cpu_metrics"
 	"strings"
 	"time"
 
